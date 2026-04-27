@@ -32,7 +32,23 @@ expensesRouter.post('/', async (req, res) => {
 
 expensesRouter.get('/', async (req, res) => {
   try {
-    const expenses = await allDb('SELECT * FROM expenses');
+    const { category, sort } = req.query;
+    
+    let query = 'SELECT * FROM expenses';
+    const params: any[] = [];
+    
+    if (category && typeof category === 'string') {
+      query += ' WHERE category = ?';
+      params.push(category);
+    }
+    
+    if (sort === 'date_desc') {
+      query += ' ORDER BY date DESC, id DESC';
+    } else {
+      query += ' ORDER BY id DESC';
+    }
+
+    const expenses = await allDb(query, params);
     res.status(200).json({ data: expenses });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch expenses" });
